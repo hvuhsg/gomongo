@@ -1,5 +1,12 @@
 package engine
 
+import (
+	"fmt"
+
+	"github.com/fatih/set"
+	"github.com/hvuhsg/gomongo/filtering"
+)
+
 type IEngine interface {
 	CreateDatabase(database_name string) error
 	DropDatabase(database_name string) error
@@ -41,8 +48,11 @@ type IReadInstructions interface {
 	And(*IReadInstructions) IReadInstructions
 	Or(*IReadInstructions) IReadInstructions
 	Not() IReadInstructions
-	GetLookupKeys() []interface{}
+	GetLookupKeys() set.Interface
+	IsExcluded(lookupKey interface{}) bool
 	ReadAll() bool
+	AddLookupKey(lookupKey interface{})
+	AddExcludedlookupKey(lookupKey interface{})
 }
 
 type Engine struct {
@@ -51,7 +61,7 @@ type Engine struct {
 	storage   *IStorage
 }
 
-func NewEngine(validator IValidator, indexor IIndexor, storage IStorage) IEngine {
+func New(validator IValidator, indexor IIndexor, storage IStorage) IEngine {
 	engine := new(Engine)
 	engine.validator = &validator
 	engine.indexor = &indexor
@@ -131,10 +141,39 @@ func (engine Engine) DropCollection(database_name string, collection_name string
 }
 
 func (engine Engine) Insert(database_name string, collection_name string, documents []map[string]interface{}) error {
+	err := (*engine.storage).Insert(database_name, collection_name, documents)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (engine Engine) Delete(database_name string, collection_name string, filter map[string]interface{}) error {
+	documents, err := engine.Find(database_name, collection_name, filter)
+	if err != nil {
+		return err
+	}
+
+	documentIdsToDelete := make([]string, 5000)
+
+	for _, document := range documents {
+		result, err := filtering.Filter(filter, document)
+		if err != nil {
+			return err
+		}
+
+		if result {
+			documentID := document["_id"]
+			docID, ok := documentID.(string)
+			if !ok {
+				return fmt.Errorf("document '_id' field must be of type string")
+			}
+
+			documentIdsToDelete = append(documentIdsToDelete, docID)
+		}
+	}
+
 	return nil
 }
 
@@ -147,5 +186,11 @@ func (engine Engine) Replace(database_name string, collection_name string, filte
 }
 
 func (engine Engine) Find(database_name string, collection_name string, filter map[string]interface{}) ([]map[string]interface{}, error) {
-	return nil, nil
+	readInstructions, err := (*engine.indexor).QueryIndex(database_name, collection_name, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	documents, err := (*engine.storage).Find(database_name, collection_name, readInstructions)
+	return documents, err
 }

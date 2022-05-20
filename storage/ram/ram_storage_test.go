@@ -1,13 +1,13 @@
-package storage_test
+package ram_test
 
 import (
 	"testing"
 
-	"github.com/hvuhsg/gomongo/storage"
+	storage "github.com/hvuhsg/gomongo/storage/ram"
 )
 
 func TestCreateDatabase(t *testing.T) {
-	ramStorage := storage.NewRamStorage()
+	ramStorage := storage.New()
 	err := ramStorage.CreateDatabase("some_name")
 	if err != nil {
 		t.Fatalf("database not created")
@@ -20,7 +20,7 @@ func TestCreateDatabase(t *testing.T) {
 }
 
 func TestCreateCollection(t *testing.T) {
-	ramStorage := storage.NewRamStorage()
+	ramStorage := storage.New()
 	err := ramStorage.CreateCollection("db_name", "col_name")
 	if err == nil {
 		t.Errorf("created collection inside database that was not created")
@@ -40,7 +40,7 @@ func TestCreateCollection(t *testing.T) {
 }
 
 func TestInsertDocuments(t *testing.T) {
-	ramStorage := storage.NewRamStorage()
+	ramStorage := storage.New()
 	ramStorage.CreateDatabase("db")
 	ramStorage.CreateCollection("db", "col")
 	var documents = [2]map[string]interface{}{
@@ -65,7 +65,7 @@ func TestInsertDocuments(t *testing.T) {
 }
 
 func TestDeleteDocuments(t *testing.T) {
-	ramStorage := storage.NewRamStorage()
+	ramStorage := storage.New()
 	ramStorage.CreateDatabase("db")
 	ramStorage.CreateCollection("db", "col")
 

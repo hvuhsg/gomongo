@@ -3,15 +3,15 @@ package main
 import (
 	"github.com/hvuhsg/gomongo/engine"
 	"github.com/hvuhsg/gomongo/indexing"
-	"github.com/hvuhsg/gomongo/storage"
+	ram_storage "github.com/hvuhsg/gomongo/storage/ram"
 	"github.com/hvuhsg/gomongo/validation"
 )
 
 func main() {
-	storage := storage.NewRamStorage()
+	storage := ram_storage.New()
 	validator := validation.New()
-	indexor := indexing.NewFakeIndexor()
-	db_engine := engine.NewEngine(validator, indexor, storage)
+	indexor := indexing.New()
+	db_engine := engine.New(validator, indexor, storage)
 
 	document := map[string]interface{}{
 		"hello":  "string",

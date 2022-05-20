@@ -1,31 +1,34 @@
 package indexing
 
-import "github.com/hvuhsg/gomongo/engine"
+import (
+	"github.com/hvuhsg/gomongo/engine"
+	"github.com/hvuhsg/gomongo/instructions"
+)
 
-type fakeIndexor struct{}
+type Indexor struct{}
 
-func NewFakeIndexor() engine.IIndexor {
-	indexor := new(fakeIndexor)
+func New() engine.IIndexor {
+	indexor := new(Indexor)
 	return indexor
 }
 
-func (indexor fakeIndexor) CreateIndex(database_name string, collection_name string, index map[string]interface{}) (string, error) {
+func (indexor Indexor) CreateIndex(database_name string, collection_name string, index map[string]interface{}) (string, error) {
 	return "index_id", nil
 }
 
-func (indexor fakeIndexor) DropIndex(index_id string) error {
+func (indexor Indexor) DropIndex(index_id string) error {
 	return nil
 }
 
-func (indexor fakeIndexor) GetDatabaseIndexes(database_name string) map[string]map[string]interface{} {
+func (indexor Indexor) GetDatabaseIndexes(database_name string) map[string]map[string]interface{} {
 	return nil
 }
 
-func (indexor fakeIndexor) GetCollectionIndexes(database_name string, collection_name string) map[string]interface{} {
+func (indexor Indexor) GetCollectionIndexes(database_name string, collection_name string) map[string]interface{} {
 	return nil
 }
 
-func (indexor fakeIndexor) QueryIndex(database_name string, collection_name string, filter map[string]interface{}) (engine.IReadInstructions, error) {
-	read_instructions := readAllInstructions{}
+func (indexor Indexor) QueryIndex(database_name string, collection_name string, filter map[string]interface{}) (engine.IReadInstructions, error) {
+	read_instructions := instructions.New(true)
 	return read_instructions, nil
 }

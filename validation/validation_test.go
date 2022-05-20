@@ -1,6 +1,7 @@
 package validation_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hvuhsg/gomongo/validation"
@@ -21,6 +22,9 @@ func testFilterValidity(filter map[string]interface{}) bool {
 func testMutationValidity(filter map[string]interface{}) bool {
 	validator := validation.New()
 	err := validator.ValidateMutation(filter)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return err == nil
 }
 
@@ -68,9 +72,13 @@ func TestFilterValidation(t *testing.T) {
 	invalidFilters := []map[string]interface{}{
 		{"$inc": "value"},
 		{"$gt": map[string]interface{}{"k": "v"}},
+		{"$$food": "ok"},
+		{"key": map[string]interface{}{"$set": "b"}},
+		{"$set": map[string]interface{}{"a": "b"}},
 	}
 	validFilters := []map[string]interface{}{
 		{"key": "value"},
+		{"key": "$value"},
 		{"key": map[string]interface{}{"$gt": 5}},
 		{"key": map[string]interface{}{"$exists": true}},
 	}
@@ -100,12 +108,15 @@ func TestMutationValidation(t *testing.T) {
 		{"$gt": 5},
 		{"$mul": map[string]interface{}{"k": "v"}},
 		{"key": "value"},
+		{"a": map[string]interface{}{"$set": "b"}},
 	}
 	validMutations := []map[string]interface{}{
 		{"$unset": "value"},
 		{"$set": map[string]interface{}{"key": "value"}},
-		{"$inc": 5},
+		{"$inc": map[string]interface{}{"age": 1}},
+		{"$mul": map[string]interface{}{"age": 1}},
 		{"$push": map[string]interface{}{"arr": 5}},
+		{"$inc": map[string]interface{}{"age": 1, "count": 2}, "$set": map[string]interface{}{"name": "mosh"}},
 	}
 
 	for _, invalidMutation := range invalidMutations {

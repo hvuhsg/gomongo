@@ -1,4 +1,4 @@
-package storage
+package ram
 
 import (
 	"errors"
@@ -10,8 +10,8 @@ type ramStorage struct {
 	databases map[string]map[string][]map[string]interface{}
 }
 
-func NewRamStorage() engine.IStorage {
-	databases := make(map[string]map[string][]map[string]interface{}, 1000)
+func New() engine.IStorage {
+	databases := make(map[string]map[string][]map[string]interface{}, 100)
 	storage := ramStorage{databases: databases}
 	return storage
 }
@@ -44,7 +44,7 @@ func (storage ramStorage) CreateDatabase(database_name string) error {
 		return errors.New("database all ready exists")
 	}
 
-	database := make(map[string][]map[string]interface{}, 5)
+	database := make(map[string][]map[string]interface{}, 100)
 	storage.databases[database_name] = database
 
 	return nil
@@ -110,7 +110,7 @@ func (storage ramStorage) Delete(database_name string, collection_name string, r
 
 	collection := storage.databases[database_name][collection_name]
 
-	for lookup_key := range read_instructions.GetLookupKeys() {
+	for lookup_key := range read_instructions.GetLookupKeys().List() {
 		collection[lookup_key] = nil
 	}
 
@@ -122,7 +122,7 @@ func (storage ramStorage) Find(database_name string, collection_name string, rea
 
 	collection := storage.databases[database_name][collection_name]
 
-	for lookup_key := range read_instructions.GetLookupKeys() {
+	for lookup_key := range read_instructions.GetLookupKeys().List() {
 		documents = append(documents, collection[lookup_key])
 	}
 

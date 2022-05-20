@@ -14,46 +14,46 @@ var validKeyChars = "0123456789abcdefghijklmnopqrstuvwxyz_ "
 var invalidFirstChars = "0123456789 "
 
 // Valid filter expressions
-var validFilterExpressions = []string{
-	"$gt",
-	"$gte",
-	"$eq",
-	"$lt",
-	"$lte",
-	"$ne",
-	"$exists",
-	"$and",
-	"$or",
-	"$nor",
-	"$not",
-	"$in",
-	"$nin",
+var validFilterExpressions = map[string]struct{}{
+	"$gt":     {},
+	"$gte":    {},
+	"$eq":     {},
+	"$lt":     {},
+	"$lte":    {},
+	"$ne":     {},
+	"$exists": {},
+	"$and":    {},
+	"$or":     {},
+	"$nor":    {},
+	"$not":    {},
+	"$in":     {},
+	"$nin":    {},
 }
-var validTopLevelFilters = []string{
-	"$not",
-	"$and",
-	"$or",
-	"$nor",
+var validTopLevelFilters = map[string]struct{}{
+	"$not": {},
+	"$and": {},
+	"$or":  {},
+	"$nor": {},
 }
 
 // Valid mutations for document updates
-var validMutationExpressions = []string{
-	"$set",
-	"$unset",
-	"$rename",
-	"$inc",
-	"$mul",
-	"$min",
-	"$max",
-	"$push",
-	"$pull",
-	"$pop",
-	"$pullAll",
-	"$addToSet",
-	"$each",
-	"$position",
-	"$slice",
-	"$sort",
+var validMutationOprators = map[string]struct{}{
+	"$set":      {},
+	"$unset":    {},
+	"$rename":   {},
+	"$inc":      {},
+	"$mul":      {},
+	"$min":      {},
+	"$max":      {},
+	"$push":     {},
+	"$pull":     {},
+	"$pop":      {},
+	"$pullAll":  {},
+	"$addToSet": {},
+	"$each":     {},
+	"$position": {},
+	"$slice":    {},
+	"$sort":     {},
 }
 
 type Validator struct{}
@@ -74,33 +74,6 @@ func (validator Validator) ValidateDocument(docuemnt map[string]interface{}) err
 	return nil
 }
 
-func (validator Validator) ValidateMutation(mutation map[string]interface{}) error {
-	for expression, value := range mutation {
-		isExpressionValid := false
-
-		for _, validExpression := range validMutationExpressions {
-			if validExpression == expression {
-				isExpressionValid = true
-			}
-		}
-
-		if !isExpressionValid {
-			return fmt.Errorf("invalid mutation expression '%s'", expression)
-		}
-
-		switch v := value.(type) {
-		case map[string]interface{}:
-			err := validator.ValidateMutation(v)
-
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
 func (validator Validator) ValidateName(name string) error {
 	for _, char := range name {
 		if !strings.Contains(validKeyChars, string(char)) {
@@ -115,17 +88,40 @@ func (validator Validator) ValidateName(name string) error {
 	return nil
 }
 
+func (validator Validator) ValidateMutation(mutation map[string]interface{}) error {
+	for operator, expression := range mutation {
+		_, isValid := validMutationOprators[operator]
+
+		if !isValid {
+			return fmt.Errorf("invalid mutation expression '%s'", operator)
+		}
+
+		if operator == "$inc" || operator == "$mul" {
+			switch expression := expression.(type) {
+			case map[string]int:
+			case map[string]interface{}:
+				for _, v := range expression {
+					switch v.(type) {
+					case int:
+					default:
+						return fmt.Errorf("value for $inc or $mul must be of type map[string]int")
+					}
+				}
+			default:
+				return fmt.Errorf("value for $inc or $mul must be of type map[string]int")
+			}
+		}
+	}
+
+	return nil
+}
+
 func (validator Validator) ValidateFilter(filter map[string]interface{}) error {
 	for field, expression := range filter {
 		if field[0] == '$' {
-			validField := false
-			for _, validTopLevelFilter := range validTopLevelFilters {
-				if field == validTopLevelFilter {
-					validField = true
-				}
-			}
+			_, ok := validTopLevelFilters[field]
 
-			if !validField {
+			if !ok {
 				return fmt.Errorf("invalid top level filter '%s'", field)
 			}
 		} else {
@@ -138,15 +134,9 @@ func (validator Validator) ValidateFilter(filter map[string]interface{}) error {
 		switch v := expression.(type) {
 		case map[string]interface{}:
 			for expression := range v {
-				isExpressionValid := false
+				_, isValid := validFilterExpressions[expression]
 
-				for _, validExpression := range validFilterExpressions {
-					if validExpression == expression {
-						isExpressionValid = true
-					}
-				}
-
-				if !isExpressionValid {
+				if !isValid {
 					return fmt.Errorf("invalid filter expression '%s'", expression)
 				}
 			}
