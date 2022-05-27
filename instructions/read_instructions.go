@@ -2,7 +2,6 @@ package instructions
 
 import (
 	"github.com/fatih/set"
-	"github.com/hvuhsg/gomongo/engine"
 )
 
 type readInstructions struct {
@@ -11,7 +10,7 @@ type readInstructions struct {
 	excludeLookUpKeys set.Interface
 }
 
-func New(readAll bool) engine.IReadInstructions {
+func New(readAll bool) IReadInstructions {
 	lookupKeys := set.New(set.NonThreadSafe)
 	r := new(readInstructions)
 	r.lookupKeys = lookupKeys
@@ -19,7 +18,7 @@ func New(readAll bool) engine.IReadInstructions {
 	return *r
 }
 
-func (r readInstructions) And(other *engine.IReadInstructions) engine.IReadInstructions {
+func (r readInstructions) And(other *IReadInstructions) IReadInstructions {
 	resultReadInstructions := new(readInstructions)
 	resultReadInstructions.readAll = r.readAll && (*other).ReadAll()
 	resultReadInstructions.lookupKeys = set.Intersection(r.lookupKeys, (*other).GetLookupKeys())
@@ -27,7 +26,7 @@ func (r readInstructions) And(other *engine.IReadInstructions) engine.IReadInstr
 	return *resultReadInstructions
 }
 
-func (r readInstructions) Or(other *engine.IReadInstructions) engine.IReadInstructions {
+func (r readInstructions) Or(other *IReadInstructions) IReadInstructions {
 	resultReadInstructions := new(readInstructions)
 	resultReadInstructions.readAll = r.readAll || (*other).ReadAll()
 	resultReadInstructions.lookupKeys = set.Union(r.lookupKeys, (*other).GetLookupKeys())
@@ -35,7 +34,7 @@ func (r readInstructions) Or(other *engine.IReadInstructions) engine.IReadInstru
 	return *resultReadInstructions
 }
 
-func (r readInstructions) Not() engine.IReadInstructions {
+func (r readInstructions) Not() IReadInstructions {
 	resultReadInstructions := new(readInstructions)
 	resultReadInstructions.readAll = !r.readAll
 	resultReadInstructions.excludeLookUpKeys = r.lookupKeys

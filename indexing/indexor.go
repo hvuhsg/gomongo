@@ -1,13 +1,12 @@
 package indexing
 
 import (
-	"github.com/hvuhsg/gomongo/engine"
 	"github.com/hvuhsg/gomongo/instructions"
 )
 
 type Indexor struct{}
 
-func New() engine.IIndexor {
+func New() IIndexor {
 	indexor := new(Indexor)
 	return indexor
 }
@@ -28,7 +27,7 @@ func (indexor Indexor) GetCollectionIndexes(database_name string, collection_nam
 	return nil
 }
 
-func (indexor Indexor) QueryIndex(database_name string, collection_name string, filter map[string]interface{}) (engine.IReadInstructions, error) {
+func (indexor Indexor) QueryIndex(database_name string, collection_name string, filter map[string]interface{}) (instructions.IReadInstructions, error) {
 	read_instructions := instructions.New(true)
 	return read_instructions, nil
 }

@@ -3,8 +3,6 @@ package validation
 import (
 	"fmt"
 	"strings"
-
-	"github.com/hvuhsg/gomongo/engine"
 )
 
 // Valid chars in document keys
@@ -58,7 +56,7 @@ var validMutationOprators = map[string]struct{}{
 
 type Validator struct{}
 
-func New() engine.IValidator {
+func New() IValidator {
 	validator := new(Validator)
 	return validator
 }

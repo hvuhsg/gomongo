@@ -1,10 +1,11 @@
 package engine
 
 import (
-	"fmt"
-
-	"github.com/fatih/set"
 	"github.com/hvuhsg/gomongo/filtering"
+	"github.com/hvuhsg/gomongo/indexing"
+	"github.com/hvuhsg/gomongo/instructions"
+	"github.com/hvuhsg/gomongo/storage"
+	"github.com/hvuhsg/gomongo/validation"
 )
 
 type IEngine interface {
@@ -19,49 +20,13 @@ type IEngine interface {
 	Find(database_name string, collection_name string, filter map[string]interface{}) ([]map[string]interface{}, error)
 }
 
-type IValidator interface {
-	ValidateFilter(filter map[string]interface{}) error
-	ValidateMutation(mutation map[string]interface{}) error
-	ValidateName(name string) error
-	ValidateDocument(document map[string]interface{}) error
-}
-
-type IIndexor interface {
-	CreateIndex(database_name string, collection_name string, index map[string]interface{}) (string, error)
-	DropIndex(index_id string) error
-	QueryIndex(database_name string, collection_name string, filter map[string]interface{}) (IReadInstructions, error)
-	GetDatabaseIndexes(database_name string) map[string]map[string]interface{}
-	GetCollectionIndexes(database_name string, collection_name string) map[string]interface{}
-}
-
-type IStorage interface {
-	CreateDatabase(database_name string) error
-	DropDatabase(database_name string) error
-	CreateCollection(database_name string, collection_name string) error
-	DropCollection(database_name string, collection_name string) error
-	Insert(database_name string, collection_name string, documents []map[string]interface{}) error
-	Delete(database_name string, collection_name string, read_instructions IReadInstructions) error
-	Find(database_name string, collection_name string, read_instructions IReadInstructions) ([]map[string]interface{}, error)
-}
-
-type IReadInstructions interface {
-	And(*IReadInstructions) IReadInstructions
-	Or(*IReadInstructions) IReadInstructions
-	Not() IReadInstructions
-	GetLookupKeys() set.Interface
-	IsExcluded(lookupKey interface{}) bool
-	ReadAll() bool
-	AddLookupKey(lookupKey interface{})
-	AddExcludedlookupKey(lookupKey interface{})
-}
-
 type Engine struct {
-	validator *IValidator
-	indexor   *IIndexor
-	storage   *IStorage
+	validator *validation.IValidator
+	indexor   *indexing.IIndexor
+	storage   *storage.IStorage
 }
 
-func New(validator IValidator, indexor IIndexor, storage IStorage) IEngine {
+func New(validator validation.IValidator, indexor indexing.IIndexor, storage storage.IStorage) IEngine {
 	engine := new(Engine)
 	engine.validator = &validator
 	engine.indexor = &indexor
@@ -150,29 +115,22 @@ func (engine Engine) Insert(database_name string, collection_name string, docume
 }
 
 func (engine Engine) Delete(database_name string, collection_name string, filter map[string]interface{}) error {
-	documents, err := engine.Find(database_name, collection_name, filter)
+	readInstructions, err := (*engine.indexor).QueryIndex(database_name, collection_name, filter)
 	if err != nil {
 		return err
 	}
 
-	documentIdsToDelete := make([]string, 5000)
-
-	for _, document := range documents {
-		result, err := filtering.Filter(filter, document)
-		if err != nil {
-			return err
-		}
-
-		if result {
-			documentID := document["_id"]
-			docID, ok := documentID.(string)
-			if !ok {
-				return fmt.Errorf("document '_id' field must be of type string")
-			}
-
-			documentIdsToDelete = append(documentIdsToDelete, docID)
-		}
+	storageDocuments, err := (*engine.storage).Find(database_name, collection_name, readInstructions)
+	if err != nil {
+		return err
 	}
+
+	deleteInstruactions := instructions.New(false)
+	for _, storageDocument := range storageDocuments {
+		deleteInstruactions.AddLookupKey(storageDocument.GetLookupKey())
+	}
+
+	(*engine.storage).Delete(database_name, collection_name, deleteInstruactions)
 
 	return nil
 }
@@ -191,6 +149,22 @@ func (engine Engine) Find(database_name string, collection_name string, filter m
 		return nil, err
 	}
 
-	documents, err := (*engine.storage).Find(database_name, collection_name, readInstructions)
-	return documents, err
+	storageDocuments, err := (*engine.storage).Find(database_name, collection_name, readInstructions)
+	if err != nil {
+		return nil, err
+	}
+
+	documents := make([]map[string]any, 0, len(storageDocuments))
+	for _, storageDocument := range storageDocuments {
+		documents = append(documents, storageDocument.GetData())
+	}
+
+	var filteredDocuments []map[string]any
+	if readInstructions.ReadAll() {
+		filteredDocuments = filtering.FilterList(filter, documents)
+	} else {
+		filteredDocuments = documents
+	}
+
+	return filteredDocuments, err
 }

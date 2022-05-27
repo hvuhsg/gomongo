@@ -3,14 +3,15 @@ package ram
 import (
 	"errors"
 
-	"github.com/hvuhsg/gomongo/engine"
+	"github.com/hvuhsg/gomongo/instructions"
+	storage_ "github.com/hvuhsg/gomongo/storage"
 )
 
 type ramStorage struct {
 	databases map[string]map[string][]map[string]interface{}
 }
 
-func New() engine.IStorage {
+func New() storage_.IStorage {
 	databases := make(map[string]map[string][]map[string]interface{}, 100)
 	storage := ramStorage{databases: databases}
 	return storage
@@ -72,7 +73,7 @@ func (storage ramStorage) CreateCollection(database_name string, collection_name
 		return errors.New("collection already exists")
 	}
 
-	collection := make([]map[string]interface{}, 100)
+	collection := make([]map[string]interface{}, 0, 100)
 	storage.databases[database_name][collection_name] = collection
 
 	return nil
@@ -102,7 +103,7 @@ func (storage ramStorage) Insert(database_name string, collection_name string, d
 	return nil
 }
 
-func (storage ramStorage) Delete(database_name string, collection_name string, read_instructions engine.IReadInstructions) error {
+func (storage ramStorage) Delete(database_name string, collection_name string, read_instructions instructions.IReadInstructions) error {
 	err := storage.ensureCollection(database_name, collection_name)
 	if err != nil {
 		return err
@@ -117,13 +118,19 @@ func (storage ramStorage) Delete(database_name string, collection_name string, r
 	return nil
 }
 
-func (storage ramStorage) Find(database_name string, collection_name string, read_instructions engine.IReadInstructions) ([]map[string]interface{}, error) {
-	documents := make([]map[string]interface{}, 5000)
+func (storage ramStorage) Find(database_name string, collection_name string, read_instructions instructions.IReadInstructions) ([]storage_.IStorageDocument, error) {
+	documents := make([]storage_.IStorageDocument, 0, 5000)
 
 	collection := storage.databases[database_name][collection_name]
 
-	for lookup_key := range read_instructions.GetLookupKeys().List() {
-		documents = append(documents, collection[lookup_key])
+	if read_instructions.ReadAll() {
+		for lookupKey, document := range collection {
+			documents = append(documents, storage_.NewDocument(document, lookupKey))
+		}
+	} else {
+		for lookupKey := range read_instructions.GetLookupKeys().List() {
+			documents = append(documents, storage_.NewDocument(collection[lookupKey], lookupKey))
+		}
 	}
 
 	return documents, nil
