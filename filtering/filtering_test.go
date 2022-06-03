@@ -42,12 +42,12 @@ func TestFilter(t *testing.T) {
 			document: map[string]interface{}{"age": 18},
 		},
 		{
-			filter:   map[string]interface{}{"age": map[string]interface{}{"$lt": 18}},
+			filter:   map[string]interface{}{"age": map[string]interface{}{"$lt": 18.5}},
 			document: map[string]interface{}{"age": 15},
 		},
 		{
 			filter:   map[string]interface{}{"age": map[string]interface{}{"$lte": 17}},
-			document: map[string]interface{}{"age": 17},
+			document: map[string]interface{}{"age": 17.0},
 		},
 	}
 

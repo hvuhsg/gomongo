@@ -82,11 +82,11 @@ func Filter(filter_ map[string]interface{}, document map[string]interface{}) (bo
 		for operator, value := range expressionMap {
 			switch operator {
 			case "$eq":
-				if ok && value != documentValue {
+				if ok && !comparison.EqualAny(value, documentValue) {
 					return false, nil
 				}
 			case "$ne":
-				if ok && value == documentValue {
+				if ok && comparison.EqualAny(value, documentValue) {
 					return false, nil
 				}
 			case "$exists":
@@ -103,7 +103,7 @@ func Filter(filter_ map[string]interface{}, document map[string]interface{}) (bo
 					return false, err
 				}
 			case "$gte":
-				if ok && value != documentValue {
+				if ok && !comparison.EqualAny(value, documentValue) {
 					isGrater, err := comparison.GraterAny(documentValue, value)
 					if err != nil || !isGrater {
 						return false, err
@@ -115,7 +115,7 @@ func Filter(filter_ map[string]interface{}, document map[string]interface{}) (bo
 					return false, err
 				}
 			case "$lte":
-				if ok && value != documentValue {
+				if ok && !comparison.EqualAny(value, documentValue) {
 					isLesser, err := comparison.LesserAny(documentValue, value)
 					if err != nil || !isLesser {
 						return false, err
