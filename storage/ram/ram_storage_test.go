@@ -3,6 +3,7 @@ package ram_test
 import (
 	"testing"
 
+	"github.com/hvuhsg/gomongo/instructions"
 	storage "github.com/hvuhsg/gomongo/storage/ram"
 )
 
@@ -74,4 +75,30 @@ func TestDeleteDocuments(t *testing.T) {
 		{"b": 2},
 	}
 	ramStorage.Insert("db", "col", documents[:])
+}
+
+func TestFindDocuments(t *testing.T) {
+	ramStorage := storage.New()
+	ramStorage.CreateDatabase("db")
+	ramStorage.CreateCollection("db", "col")
+
+	var documents = [2]map[string]interface{}{
+		{"a": 1},
+		{"b": 2},
+	}
+	ramStorage.Insert("db", "col", documents[:])
+
+	readInstructions := instructions.New(false)
+	readInstructions.AddLookupKey(0)
+
+	documentsRsult, err := ramStorage.Find("db", "col", readInstructions)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(documentsRsult) != 1 {
+		t.Errorf("expected 1 document and got %v", len(documents))
+	} else if documentsRsult[0].GetLookupKey() != 0 {
+		t.Errorf("expected document with lookup key 0 not %v", documentsRsult[0].GetLookupKey())
+	}
 }
