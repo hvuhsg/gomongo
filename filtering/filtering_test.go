@@ -49,6 +49,14 @@ func TestFilter(t *testing.T) {
 			filter:   map[string]interface{}{"age": map[string]interface{}{"$lte": 17}},
 			document: map[string]interface{}{"age": 17.0},
 		},
+		{
+			filter:   map[string]interface{}{"age": map[string]interface{}{"$in": 17}},
+			document: map[string]interface{}{"age": []any{17, 16, 14}},
+		},
+		{
+			filter:   map[string]interface{}{"age": map[string]interface{}{"$nin": 17}},
+			document: map[string]interface{}{"age": []any{16, 14}},
+		},
 	}
 
 	falseResults := []testCase{
@@ -87,6 +95,22 @@ func TestFilter(t *testing.T) {
 		{
 			filter:   map[string]interface{}{"age": map[string]interface{}{"$lte": 17}},
 			document: map[string]interface{}{"age": 18},
+		},
+		{
+			filter:   map[string]interface{}{"age": map[string]interface{}{"$in": 17}},
+			document: map[string]interface{}{"age": []any{16, 14}},
+		},
+		{
+			filter:   map[string]interface{}{"age": map[string]interface{}{"$nin": 17}},
+			document: map[string]interface{}{"age": []int{17, 16, 14}},
+		},
+		{
+			filter:   map[string]interface{}{"age": map[string]interface{}{"$nin": 17}},
+			document: map[string]interface{}{"age": "18"},
+		},
+		{
+			filter:   map[string]interface{}{"age": map[string]interface{}{"$in": 17}},
+			document: map[string]interface{}{"age": "18"},
 		},
 	}
 
