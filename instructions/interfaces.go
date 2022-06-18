@@ -6,9 +6,10 @@ type IReadInstructions interface {
 	And(*IReadInstructions) IReadInstructions
 	Or(*IReadInstructions) IReadInstructions
 	Not() IReadInstructions
-	GetLookupKeys() set.Interface
-	IsExcluded(lookupKey interface{}) bool
+	GetInculdeKeys() set.Interface
+	GetExcludeKeys() set.Interface
+	IsExcluded(lookupKey any) bool
 	ReadAll() bool
-	AddLookupKey(lookupKey interface{})
-	AddExcludedlookupKey(lookupKey interface{})
+	AddInculdeKey(lookupKey any)
+	AddExcludeKey(lookupKey any)
 }

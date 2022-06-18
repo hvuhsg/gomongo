@@ -89,7 +89,7 @@ func TestFindDocuments(t *testing.T) {
 	ramStorage.Insert("db", "col", documents[:])
 
 	readInstructions := instructions.New(false)
-	readInstructions.AddLookupKey(0)
+	readInstructions.AddInculdeKey(0)
 
 	documentsRsult, err := ramStorage.Find("db", "col", readInstructions)
 	if err != nil {

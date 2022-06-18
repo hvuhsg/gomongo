@@ -127,7 +127,7 @@ func (engine Engine) Delete(database_name string, collection_name string, filter
 
 	deleteInstruactions := instructions.New(false)
 	for _, storageDocument := range storageDocuments {
-		deleteInstruactions.AddLookupKey(storageDocument.GetLookupKey())
+		deleteInstruactions.AddInculdeKey(storageDocument.GetLookupKey())
 	}
 
 	(*engine.storage).Delete(database_name, collection_name, deleteInstruactions)

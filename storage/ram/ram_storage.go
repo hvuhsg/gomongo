@@ -111,7 +111,7 @@ func (storage ramStorage) Delete(database_name string, collection_name string, r
 
 	collection := storage.databases[database_name][collection_name]
 
-	for lookup_key := range read_instructions.GetLookupKeys().List() {
+	for lookup_key := range read_instructions.GetInculdeKeys().List() {
 		collection[lookup_key] = nil
 	}
 
@@ -128,7 +128,7 @@ func (storage ramStorage) Find(database_name string, collection_name string, rea
 			documents = append(documents, storage_.NewDocument(document, lookupKey))
 		}
 	} else {
-		for lookupKey := range read_instructions.GetLookupKeys().List() {
+		for lookupKey := range read_instructions.GetInculdeKeys().List() {
 			documents = append(documents, storage_.NewDocument(collection[lookupKey], lookupKey))
 		}
 	}
