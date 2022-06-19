@@ -1,5 +1,8 @@
 # gomongo
-Mongo like database writen in GO
+Mongo like database writen in GO  
+
+----
+[![Go](https://github.com/hvuhsg/gomongo/actions/workflows/go.yml/badge.svg)](https://github.com/hvuhsg/gomongo/actions/workflows/go.yml)  
 
 
 ### NOTE
