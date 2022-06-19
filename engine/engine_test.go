@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	"github.com/hvuhsg/gomongo/engine"
+	"github.com/hvuhsg/gomongo/engine/validation"
 	"github.com/hvuhsg/gomongo/indexing"
 	storage "github.com/hvuhsg/gomongo/storage/ram"
-	"github.com/hvuhsg/gomongo/validation"
 )
 
 func createEngine() engine.IEngine {

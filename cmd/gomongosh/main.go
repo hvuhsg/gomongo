@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/hvuhsg/gomongo/engine"
+	"github.com/hvuhsg/gomongo/engine/validation"
 	"github.com/hvuhsg/gomongo/indexing"
 	ram_storage "github.com/hvuhsg/gomongo/storage/ram"
-	"github.com/hvuhsg/gomongo/validation"
 )
 
 func main() {

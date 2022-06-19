@@ -3,7 +3,7 @@ package filtering_test
 import (
 	"testing"
 
-	"github.com/hvuhsg/gomongo/filtering"
+	"github.com/hvuhsg/gomongo/engine/filtering"
 )
 
 type testCase struct {

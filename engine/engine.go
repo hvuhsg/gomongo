@@ -1,11 +1,11 @@
 package engine
 
 import (
-	"github.com/hvuhsg/gomongo/filtering"
+	"github.com/hvuhsg/gomongo/engine/filtering"
+	"github.com/hvuhsg/gomongo/engine/validation"
 	"github.com/hvuhsg/gomongo/indexing"
 	"github.com/hvuhsg/gomongo/instructions"
 	"github.com/hvuhsg/gomongo/storage"
-	"github.com/hvuhsg/gomongo/validation"
 )
 
 type IEngine interface {

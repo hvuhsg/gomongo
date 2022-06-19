@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hvuhsg/gomongo/validation"
+	"github.com/hvuhsg/gomongo/engine/validation"
 )
 
 func testNameValidity(name string) bool {
