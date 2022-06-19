@@ -5,4 +5,6 @@ type IValidator interface {
 	ValidateMutation(mutation map[string]interface{}) error
 	ValidateName(name string) error
 	ValidateDocument(document map[string]interface{}) error
+	IsTopLevelFilterOp(filterOp string) bool
+	IsFilterOp(filterOp string) bool
 }

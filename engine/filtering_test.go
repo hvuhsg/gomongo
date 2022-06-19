@@ -1,9 +1,9 @@
-package filtering_test
+package engine_test
 
 import (
 	"testing"
 
-	"github.com/hvuhsg/gomongo/engine/filtering"
+	"github.com/hvuhsg/gomongo/engine"
 )
 
 type testCase struct {
@@ -116,7 +116,7 @@ func TestFilter(t *testing.T) {
 
 	for _, testCase := range trueResults {
 		t.Run("true result expected", func(t *testing.T) {
-			result, err := filtering.Filter(testCase.filter, testCase.document)
+			result, err := engine.Filter(testCase.filter, testCase.document)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -129,7 +129,7 @@ func TestFilter(t *testing.T) {
 
 	for _, testCase := range falseResults {
 		t.Run("false result expected", func(t *testing.T) {
-			result, err := filtering.Filter(testCase.filter, testCase.document)
+			result, err := engine.Filter(testCase.filter, testCase.document)
 			if err != nil {
 				t.Fatal(err)
 			}

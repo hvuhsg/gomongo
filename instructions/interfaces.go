@@ -1,6 +1,8 @@
 package instructions
 
-import "github.com/fatih/set"
+import (
+	"github.com/fatih/set"
+)
 
 type IReadInstructions interface {
 	And(*IReadInstructions) IReadInstructions

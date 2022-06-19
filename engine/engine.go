@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"github.com/hvuhsg/gomongo/engine/filtering"
 	"github.com/hvuhsg/gomongo/engine/validation"
 	"github.com/hvuhsg/gomongo/indexing"
 	"github.com/hvuhsg/gomongo/instructions"
@@ -161,7 +160,7 @@ func (engine Engine) Find(database_name string, collection_name string, filter m
 
 	var filteredDocuments []map[string]any
 	if readInstructions.ReadAll() {
-		filteredDocuments = filtering.FilterList(filter, documents)
+		filteredDocuments = FilterList(filter, documents)
 	} else {
 		filteredDocuments = documents
 	}

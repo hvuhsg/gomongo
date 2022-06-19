@@ -1,10 +1,56 @@
-package filtering
+package engine
 
 import (
 	"fmt"
 
 	comparison "github.com/hvuhsg/gomongo/pkg/comparison"
 )
+
+/// UTILS START
+// Valid filter expressions
+var validFilterOperations = map[string]struct{}{
+	"$gt":     {},
+	"$gte":    {},
+	"$eq":     {},
+	"$lt":     {},
+	"$lte":    {},
+	"$ne":     {},
+	"$exists": {},
+	"$and":    {},
+	"$or":     {},
+	"$nor":    {},
+	"$not":    {},
+	"$in":     {},
+	"$nin":    {},
+}
+var validTopLevelFilters = map[string]struct{}{
+	"$not": {},
+	"$and": {},
+	"$or":  {},
+	"$nor": {},
+}
+
+func IsTopLevelFilterOp(filterOp string) bool {
+	_, ok := validTopLevelFilters[filterOp]
+	return ok
+}
+
+func IsFilterOp(filterOp string) bool {
+	_, ok := validTopLevelFilters[filterOp]
+	if ok {
+		return ok
+	}
+
+	_, ok = validFilterOperations[filterOp]
+	return ok
+}
+
+func ToFilter(filter any) (map[string]any, bool) {
+	mapFilter, ok := filter.(map[string]any)
+	return mapFilter, ok
+}
+
+/// UTILS END
 
 func isContains(collection []any, item any) bool {
 	for _, i := range collection {
@@ -81,18 +127,18 @@ func nin(documentValue, filterValue any) bool {
 	}
 }
 
-func Filter(filter_ map[string]interface{}, document map[string]interface{}) (bool, error) {
-	for topLevel, expression := range filter_ {
-		if topLevel[0] == '$' {
-			expression, ok := expression.(map[string]interface{})
+func Filter(filter_ map[string]any, document map[string]any) (bool, error) {
+	for key, value := range filter_ {
+		if IsTopLevelFilterOp(key) {
+			expression, ok := ToFilter(value)
 			if !ok {
-				return false, fmt.Errorf("expression of top level filter must be of type 'map[string]interface{}'")
+				return false, fmt.Errorf("expression of top level filter must be of type 'map[string]any'")
 			}
 
-			switch topLevel {
+			switch key {
 			case "$and":
 				for subfilter, subexpression := range expression {
-					result, err := Filter(map[string]interface{}{subfilter: subexpression}, document)
+					result, err := Filter(map[string]any{subfilter: subexpression}, document)
 
 					if err != nil || !result {
 						return false, err
@@ -102,7 +148,7 @@ func Filter(filter_ map[string]interface{}, document map[string]interface{}) (bo
 				var valid bool = false
 
 				for subfilter, subexpression := range expression {
-					result, err := Filter(map[string]interface{}{subfilter: subexpression}, document)
+					result, err := Filter(map[string]any{subfilter: subexpression}, document)
 
 					if err != nil {
 						return false, err
@@ -117,7 +163,7 @@ func Filter(filter_ map[string]interface{}, document map[string]interface{}) (bo
 			case "$nor":
 				var valid bool = false
 				for subfilter, subexpression := range expression {
-					result, err := Filter(map[string]interface{}{subfilter: subexpression}, document)
+					result, err := Filter(map[string]any{subfilter: subexpression}, document)
 					if err != nil {
 						return false, err
 					}
@@ -133,7 +179,7 @@ func Filter(filter_ map[string]interface{}, document map[string]interface{}) (bo
 				}
 
 				for subfilter, subexpression := range expression {
-					result, err := Filter(map[string]interface{}{subfilter: subexpression}, document)
+					result, err := Filter(map[string]any{subfilter: subexpression}, document)
 					if err != nil {
 						return false, err
 					}
@@ -148,12 +194,12 @@ func Filter(filter_ map[string]interface{}, document map[string]interface{}) (bo
 			continue
 		}
 
-		expressionMap, ok := expression.(map[string]interface{})
+		expressionMap, ok := ToFilter(value)
 		if !ok {
-			expressionMap = map[string]any{"$eq": expression}
+			expressionMap = map[string]any{"$eq": value}
 		}
 
-		documentValue, fieldExists := document[topLevel]
+		documentValue, fieldExists := document[key]
 		for operator, filterValue := range expressionMap {
 			switch operator {
 			case "$eq":

@@ -12,7 +12,7 @@ var validKeyChars = "0123456789abcdefghijklmnopqrstuvwxyz_ "
 var invalidFirstChars = "0123456789 "
 
 // Valid filter expressions
-var validFilterExpressions = map[string]struct{}{
+var validFilterOperations = map[string]struct{}{
 	"$gt":     {},
 	"$gte":    {},
 	"$eq":     {},
@@ -132,7 +132,7 @@ func (validator Validator) ValidateFilter(filter map[string]interface{}) error {
 		switch v := expression.(type) {
 		case map[string]interface{}:
 			for expression := range v {
-				_, isValid := validFilterExpressions[expression]
+				_, isValid := validFilterOperations[expression]
 
 				if !isValid {
 					return fmt.Errorf("invalid filter expression '%s'", expression)
@@ -142,4 +142,19 @@ func (validator Validator) ValidateFilter(filter map[string]interface{}) error {
 	}
 
 	return nil
+}
+
+func (validator Validator) IsTopLevelFilterOp(filterOp string) bool {
+	_, ok := validTopLevelFilters[filterOp]
+	return ok
+}
+
+func (validator Validator) IsFilterOp(filterOp string) bool {
+	_, ok := validTopLevelFilters[filterOp]
+	if ok {
+		return ok
+	}
+
+	_, ok = validFilterOperations[filterOp]
+	return ok
 }
