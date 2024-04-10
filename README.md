@@ -2,7 +2,7 @@
 Mongo like database writen in GO  
 
 ----
-[![Go](https://github.com/hvuhsg/gomongo/actions/workflows/go.yml/badge.svg)](https://github.com/hvuhsg/gomongo/actions/workflows/go.yml)  
+[![Go](https://github.com/hvuhsg/gomongo/actions/workflows/go.yml/badge.svg)](https://github.com/hvuhsg/gomongo/actions/workflows/go.yml)
 [![Bring Them Home](https://badge.yehoyada.com)](https://www.standwithus.com/)  
 
 
